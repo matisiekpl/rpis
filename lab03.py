@@ -1,5 +1,5 @@
+# Mateusz Woźniak - RPiS Lab 03
 import math
-
 import scipy
 
 
@@ -25,9 +25,15 @@ def average_hypothesis(X, guessed_average, deviation, hypothesis_type, alfa):
     if guessed_average == -1:
         guessed_average = new(X)
     w = (average - guessed_average) / (deviation / math.sqrt(len(X)))
-    ppf = scipy.stats.norm.ppf if len(X) >= 30 else scipy.stats.t.ppf
+
+    def ppf(k):
+        if len(X) < 30:
+            return scipy.stats.t.ppf(k, len(X) - 1)
+        else:
+            return scipy.stats.norm.ppf(k)
+
     if hypothesis_type == 'd':
-        return ppf(1 - alfa / 2) < w < -ppf(1 - alfa / 2)
+        return ppf(1 - alfa / 2) < w or w < - ppf(1 - alfa / 2)
     if hypothesis_type == 'l':
         return w < - ppf(1 - alfa)
     if hypothesis_type == 'r':
@@ -41,7 +47,7 @@ def sp(X, Y):
 
 
 def compare_averages(X, Y, variance1, variance2, alfa, hypothesis_type):
-    if variance1 != -1 and variance2 != -1:
+    if variance1 != -1 or variance2 != -1:
         w = (avg(X) - avg(Y)) / math.sqrt((variance1 / len(X)) + (variance2 / len(Y)))
     else:
         w = (avg(X) - avg(Y)) / (sp(X, Y) * math.sqrt((1 / len(X)) + (1 / len(Y))))
@@ -53,7 +59,7 @@ def compare_averages(X, Y, variance1, variance2, alfa, hypothesis_type):
             return scipy.stats.norm.ppf(k)
 
     if hypothesis_type == 'd':
-        return ppf(1 - alfa / 2) < w < -ppf(1 - alfa / 2)
+        return ppf(1 - alfa / 2) < w or w < - ppf(1 - alfa / 2)
     if hypothesis_type == 'l':
         return w < - ppf(1 - alfa)
     if hypothesis_type == 'r':
@@ -67,7 +73,7 @@ def dependant_variables(X, Y, guessed_diff, hypothesis_type, alfa):
     w = (avg(D) - guessed_diff) / (new(D) / math.sqrt(len(X)))
     ppf = scipy.stats.t.ppf
     if hypothesis_type == 'd':
-        return ppf(1 - alfa / 2) < w < -ppf(1 - alfa / 2)
+        return ppf(1 - alfa / 2) < w or w < - ppf(1 - alfa / 2)
     if hypothesis_type == 'l':
         return w < - ppf(1 - alfa)
     if hypothesis_type == 'r':
@@ -78,10 +84,10 @@ def variance_hypothesis(X, guessed_variance, alfa, hypothesis_type):
     w = ((len(X) - 1) * new(X)) / guessed_variance
     if hypothesis_type == 'l':
         return w < scipy.stats.chi2.ppf(alfa, len(X) - 1)
-    if hypothesis_type == 'l':
+    if hypothesis_type == 'r':
         return w > scipy.stats.chi2.ppf(1 - alfa, len(X) - 1)
     if hypothesis_type == 'd':
-        return scipy.stats.chi2.ppf(alfa, len(X) - 1) > w > scipy.stats.chi2.ppf(1 - alfa, len(X) - 1)
+        return w > scipy.stats.chi2.ppf(alfa, len(X) - 1) or w < scipy.stats.chi2.ppf(alfa, len(X) - 1)
 
 
 def uniform_distribution(X, alfa):
